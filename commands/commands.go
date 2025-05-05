@@ -15,19 +15,26 @@ func Register(cmd Command) {
 	registry[cmd.Name()] = cmd
 }
 
-func All() []*discordgo.ApplicationCommand {
-	list := make([]*discordgo.ApplicationCommand, 0, len(registry))
-	for _, cmd := range registry {
-		list = append(list, &discordgo.ApplicationCommand{
-			Name:        cmd.Name(),
-			Description: cmd.Description(),
-			Options:     cmd.Options(),
-		})
-	}
-	return list
-}
-
 func GetHandler(name string) (Command, bool) {
 	cmd, ok := registry[name]
 	return cmd, ok
+}
+
+func All() []*discordgo.ApplicationCommand {
+	out := make([]*discordgo.ApplicationCommand, 0, len(registry))
+	for name, cmd := range registry {
+		ac := &discordgo.ApplicationCommand{
+			Name:        cmd.Name(),
+			Description: cmd.Description(),
+			Options:     cmd.Options(),
+		}
+		if name == "ticketconfig" {
+			perm := int64(discordgo.PermissionAdministrator)
+			ac.DefaultMemberPermissions = &perm
+			dm := false
+			ac.DMPermission = &dm
+		}
+		out = append(out, ac)
+	}
+	return out
 }
